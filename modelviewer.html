@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Modelo AR</title>
+  <!-- Librería model-viewer -->
+  <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.0.1/model-viewer.min.js"></script>
+  <style>
+    body, html {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      background-color: #9BC0E2;
+      font-family: 'Arial', sans-serif;
+      color: white;
+    }
+
+    /* Contenedor del texto y el botón */
+    #ui-container {
+      position: absolute;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      max-width: 90%;
+      z-index: 10;
+    }
+
+    #texto-info {
+      font-size: 1rem;
+      line-height: 1.3em;
+      color: #fff;
+    }
+
+    #start-ar {
+      white-space: nowrap; /* evita salto de línea */
+      padding: 15px 50px;
+      font-size: 1.2rem;
+      font-weight: bold;
+      background-color: white;
+      color: #7142FF;
+      border: none;
+      border-radius: 15px;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    #start-ar:hover {
+      transform: scale(1.05);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+    }
+
+    /* Porcentaje de carga */
+    #loading {
+      position: absolute;
+      bottom: 50%;
+      left: 50%;
+      transform: translate(-50%, 50%);
+      font-size: 1.3rem;
+      color: white;
+      z-index: 5;
+      font-weight: bold;
+      text-shadow: 0 0 10px rgba(0,0,0,0.4);
+      transition: opacity 0.5s ease;
+    }
+
+    model-viewer {
+      width: 100vw;
+      height: 100vh;
+      opacity: 0;
+      transition: opacity 0.8s ease; /* transición suave */
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Contenedor superior -->
+  <div id="ui-container">
+    <div id="texto-info">
+      Activa la cámara de tu teléfono para ver en realidad aumentada
+    </div>
+    <button id="start-ar">Activar cámara</button>
+  </div>
+
+  <!-- Texto de carga -->
+  <div id="loading">Cargando 0%</div>
+
+  <!-- Modelo 3D -->
+  <model-viewer
+    id="modelo"
+    src="https://raw.githubusercontent.com/Armonico-estudio/modelo-ar/main/navidad.glb"
+    ar
+    ar-modes="webxr scene-viewer quick-look"
+    camera-controls
+    exposure="1"
+  ></model-viewer>
+
+  <script>
+    const viewer = document.querySelector('#modelo');
+    const btn = document.querySelector('#start-ar');
+    const uiContainer = document.querySelector('#ui-container');
+    const loadingText = document.querySelector('#loading');
+
+    // Mostrar progreso real
+    viewer.addEventListener('progress', (event) => {
+      const progress = Math.round((event.detail.totalProgress || 0) * 100);
+      loadingText.textContent = Cargando ${progress}%;
+    });
+
+    // Cuando el modelo termina de cargarse completamente
+    viewer.addEventListener('load', () => {
+      // Mostrar el modelo suavemente
+      viewer.style.opacity = '1';
+      // Ocultar el texto de carga cuando el modelo esté visible
+      setTimeout(() => {
+        loadingText.style.opacity = '0';
+        setTimeout(() => (loadingText.style.display = 'none'), 600);
+      }, 1000);
+    });
+
+    // Activar modo AR
+    btn.addEventListener('click', async () => {
+      try {
+        await viewer.activateAR(); // Abre la cámara AR
+        uiContainer.style.display = 'none'; // Oculta texto y botón
+      } catch (e) {
+        alert('No se pudo abrir AR. Tu dispositivo o navegador puede no soportarlo.');
+        console.error(e);
+      }
+    });
+  </script>
+
+</body>
+</html>
